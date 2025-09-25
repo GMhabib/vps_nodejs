@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
+        /* CSS yang sama seperti sebelumnya */
         body {
             font-family: sans-serif;
             background-color: #f4f4f4;
@@ -40,7 +41,7 @@
         .logout-btn:hover {
             background-color: #c82333;
         }
-        #addFileForm, #uploadForm, #createFolderForm {
+        #addFileForm, #uploadForm, #createFolderForm, #editFileForm {
             margin-top: 20px;
             padding: 15px;
             border: 1px solid #ccc;
@@ -76,7 +77,20 @@
             justify-content: space-between;
             align-items: center;
         }
-        .delete-btn, .download-btn {
+        .file-name-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-icon {
+            font-size: 20px;
+            color: #555;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .delete-btn, .download-btn, .edit-btn, .extract-btn {
             background-color: #dc3545;
             color: #fff;
             border: none;
@@ -94,11 +108,25 @@
         .download-btn:hover {
             background-color: #218838;
         }
+        .edit-btn {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        .extract-btn {
+            background-color: #6c757d;
+        }
+        .extract-btn:hover {
+            background-color: #5a6268;
+        }
         .error-message {
             color: red;
             font-weight: bold;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
@@ -128,10 +156,20 @@
     <hr>
 
     <div id="uploadForm">
-        <h2>Unggah File (ZIP)</h2>
-        <input type="file" id="uploadFile" accept=".zip">
+        <h2>Unggah File</h2>
+        <input type="file" id="uploadFile">
         <br>
-        <button onclick="uploadFile()">Unggah dan Ekstrak</button>
+        <button onclick="uploadFile()">Unggah File</button>
+    </div>
+
+    <hr>
+
+    <div id="editFileForm" style="display: none;">
+        <h2>Edit File: <span id="editingFilename"></span></h2>
+        <textarea id="editFileContent" rows="10"></textarea>
+        <br>
+        <button onclick="saveEditedFile()">Simpan Perubahan</button>
+        <button onclick="cancelEdit()">Batal</button>
     </div>
 
     <hr>
@@ -185,6 +223,209 @@
         window.location.href = '/login.html';
     }
 
+    function getFileIcon(filename) {
+        if (filename.endsWith('.zip')) {
+            return '<i class="fas fa-file-archive file-icon"></i>';
+        }
+        if (filename.includes('.')) {
+            return '<i class="fas fa-file file-icon"></i>';
+        }
+        return '<i class="fas fa-folder file-icon"></i>';
+    }
+
+    // --- Fungsi File ---
+    async function fetchFiles(token, userRole) {
+        const messageEl = document.getElementById('message');
+        const fileListEl = document.getElementById('fileList');
+        
+        try {
+            const response = await fetch('/api/files', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const files = await response.json();
+                fileListEl.innerHTML = '';
+                if (files.length === 0) {
+                    messageEl.textContent = 'Tidak ada file ditemukan.';
+                } else {
+                    messageEl.textContent = '';
+                    files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'file-item';
+                        
+                        const fileInfoDiv = document.createElement('div');
+                        fileInfoDiv.className = 'file-name-container';
+                        fileInfoDiv.innerHTML = `${getFileIcon(file)}<span>${file}</span>`;
+                        
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'file-actions';
+
+                        // Tombol Unduh
+                        if (!file.includes('.')) { // Untuk folder, tidak ada tombol unduh
+                            // Lewati
+                        } else {
+                            const downloadBtn = document.createElement('button');
+                            downloadBtn.className = 'download-btn';
+                            downloadBtn.textContent = 'Unduh';
+                            downloadBtn.onclick = () => downloadFile(file);
+                            actionsDiv.appendChild(downloadBtn);
+                        }
+
+                        // Tombol Edit
+                        if (!file.includes('.')) { // Untuk folder, tidak ada tombol edit
+                            // Lewati
+                        } else {
+                            const editBtn = document.createElement('button');
+                            editBtn.className = 'edit-btn';
+                            editBtn.textContent = 'Edit';
+                            editBtn.onclick = () => editFile(file);
+                            actionsDiv.appendChild(editBtn);
+                        }
+
+                        // Tombol Ekstrak (hanya untuk file .zip)
+                        if (file.endsWith('.zip')) {
+                            const extractBtn = document.createElement('button');
+                            extractBtn.className = 'extract-btn';
+                            extractBtn.textContent = 'Ekstrak';
+                            extractBtn.onclick = () => extractFile(file);
+                            actionsDiv.appendChild(extractBtn);
+                        }
+
+                        // Tombol Hapus (hanya untuk Admin)
+                        if (userRole === 'admin') {
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'delete-btn';
+                            deleteBtn.textContent = 'Hapus';
+                            deleteBtn.onclick = () => deleteFile(file);
+                            actionsDiv.appendChild(deleteBtn);
+                        }
+
+                        listItem.appendChild(fileInfoDiv);
+                        listItem.appendChild(actionsDiv);
+                        fileListEl.appendChild(listItem);
+                    });
+                }
+            } else {
+                const errorData = await response.json();
+                messageEl.textContent = `Gagal memuat file: ${errorData.message || 'Terjadi kesalahan.'}`;
+                messageEl.classList.add('error-message');
+            }
+        } catch (error) {
+            messageEl.textContent = 'Terjadi kesalahan saat memuat file.';
+            messageEl.classList.add('error-message');
+        }
+    }
+
+    async function downloadFile(filename) {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`/api/files/download/${filename}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                const errorText = await response.text();
+                alert('Gagal mengunduh file: ' + errorText);
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat mengunduh file.');
+        }
+    }
+
+    async function editFile(filename) {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`/api/files/read/${filename}`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const content = await response.text();
+                document.getElementById('editFileForm').style.display = 'block';
+                document.getElementById('editingFilename').textContent = filename;
+                document.getElementById('editFileContent').value = content;
+                document.getElementById('fileList').style.display = 'none';
+            } else {
+                const errorData = await response.json();
+                alert('Gagal membaca file: ' + (errorData.message || 'Akses ditolak.'));
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat mencoba mengedit file.');
+        }
+    }
+
+    async function saveEditedFile() {
+        const token = localStorage.getItem('token');
+        const filename = document.getElementById('editingFilename').textContent;
+        const content = document.getElementById('editFileContent').value;
+        try {
+            const response = await fetch(`/api/files/edit/${filename}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ content })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                cancelEdit();
+                fetchFiles(token, parseJwt(token).role);
+            } else {
+                alert('Gagal menyimpan perubahan: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat menyimpan file.');
+        }
+    }
+
+    function cancelEdit() {
+        document.getElementById('editFileForm').style.display = 'none';
+        document.getElementById('fileList').style.display = 'block';
+    }
+
+    async function extractFile(filename) {
+        const token = localStorage.getItem('token');
+        if (!confirm(`Apakah Anda yakin ingin mengekstrak file "${filename}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/files/extract/${filename}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                fetchFiles(token, parseJwt(token).role);
+            } else {
+                alert('Gagal mengekstrak file: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat mengekstrak file.');
+        }
+    }
+
     async function addFile() {
         const token = localStorage.getItem('token');
         const filename = document.getElementById('newFilename').value;
@@ -214,77 +455,6 @@
         }
     }
     
-    async function fetchFiles(token, userRole) {
-        const messageEl = document.getElementById('message');
-        const fileListEl = document.getElementById('fileList');
-        
-        try {
-            const response = await fetch('/api/files', {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            
-            if (response.ok) {
-                const files = await response.json();
-                fileListEl.innerHTML = '';
-                if (files.length === 0) {
-                    messageEl.textContent = 'Tidak ada file ditemukan.';
-                } else {
-                    messageEl.textContent = '';
-                    files.forEach(file => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'file-item';
-                        listItem.innerHTML = `<span>${file}</span>`;
-                        const actionsDiv = document.createElement('div');
-                        const downloadBtn = document.createElement('a');
-                        downloadBtn.href = `/api/files/download/${file}`;
-                        downloadBtn.className = 'download-btn';
-                        downloadBtn.textContent = 'Unduh';
-                        actionsDiv.appendChild(downloadBtn);
-                        if (userRole === 'admin') {
-                            const deleteBtn = document.createElement('button');
-                            deleteBtn.className = 'delete-btn';
-                            deleteBtn.textContent = 'Hapus';
-                            deleteBtn.onclick = () => deleteFile(file);
-                            actionsDiv.appendChild(deleteBtn);
-                        }
-                        listItem.appendChild(actionsDiv);
-                        fileListEl.appendChild(listItem);
-                    });
-                }
-            } else {
-                const errorData = await response.json();
-                messageEl.textContent = `Gagal memuat file: ${errorData.message || 'Terjadi kesalahan.'}`;
-                messageEl.classList.add('error-message');
-            }
-        } catch (error) {
-            messageEl.textContent = 'Terjadi kesalahan saat memuat file.';
-            messageEl.classList.add('error-message');
-        }
-    }
-
-    async function deleteFile(filename) {
-        const token = localStorage.getItem('token');
-        if (!confirm(`Apakah Anda yakin ingin menghapus file "${filename}"?`)) {
-            return;
-        }
-        try {
-            const response = await fetch(`/api/files/delete/${filename}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (response.ok) {
-                alert(data.message);
-                fetchFiles(token, parseJwt(token).role);
-            } else {
-                alert('Gagal menghapus file: ' + (data.message || 'Akses ditolak.'));
-            }
-        } catch (error) {
-            alert('Terjadi kesalahan saat menghapus file.');
-        }
-    }
-
     async function createFolder() {
         const token = localStorage.getItem('token');
         const foldername = document.getElementById('newFolderName').value;
@@ -318,19 +488,17 @@
         const fileInput = document.getElementById('uploadFile');
         const file = fileInput.files[0];
         if (!file) {
-            alert('Silakan pilih file ZIP untuk diunggah.');
+            alert('Silakan pilih file untuk diunggah.');
             return;
         }
         
         const formData = new FormData();
-        formData.append('zipFile', file);
+        formData.append('uploadedFile', file);
         
         try {
             const response = await fetch('/api/files/upload', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
             });
             
@@ -347,11 +515,32 @@
         }
     }
     
-    // --- Fungsi Manajemen User (Khusus Admin) ---
+    async function deleteFile(filename) {
+        const token = localStorage.getItem('token');
+        if (!confirm(`Apakah Anda yakin ingin menghapus file "${filename}"?`)) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/files/delete/${filename}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                fetchFiles(token, parseJwt(token).role);
+            } else {
+                alert('Gagal menghapus file: ' + (data.message || 'Akses ditolak.'));
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat menghapus file.');
+        }
+    }
+
     async function fetchUsers(token) {
         const userListEl = document.getElementById('userList');
         const userMessageEl = document.getElementById('userMessage');
-        userListEl.innerHTML = ''; // Kosongkan daftar
+        userListEl.innerHTML = '';
         userMessageEl.textContent = 'Memuat pengguna...';
         
         try {
