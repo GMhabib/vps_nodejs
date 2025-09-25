@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>habibGM VPS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f2f7; /* Light blue background */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar {
+            background-color: #2c3e50; /* Darker blue/grey */
+            color: #ecf0f1;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .navbar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ecf0f1;
+            text-decoration: none;
+        }
+        .navbar .nav-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .navbar .nav-links a:hover {
+            color: #3498db; /* Lighter blue on hover */
+        }
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); /* Blue gradient */
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .hero p {
+            font-size: 22px;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .features {
+            padding: 60px 20px;
+            text-align: center;
+            background-color: #fcfcfc;
+        }
+        .features h2 {
+            font-size: 36px;
+            color: #2c3e50;
+            margin-bottom: 40px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: auto;
+        }
+        .feature-item {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            text-align: left;
+        }
+        .feature-item:hover {
+            transform: translateY(-5px);
+        }
+        .feature-item h3 {
+            color: #3498db;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .feature-item p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #555;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #e67e22; /* Orange */
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 40px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .cta-button:hover {
+            background-color: #d35400; /* Darker orange */
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+            }
+            .navbar .nav-links {
+                margin-top: 15px;
+            }
+            .navbar .nav-links a {
+                margin: 0 10px;
+            }
+            .hero h1 {
+                font-size: 38px;
+            }
+            .hero p {
+                font-size: 18px;
+            }
+            .features {
+                padding: 40px 15px;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">habibGM VPS</a>
+        <div class="nav-links">
+            <a href="/login.html">Login</a>
+            <a href="/register.html">Daftar</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Transformasi Ponsel Anda Menjadi Server Cloud Pribadi!</h1>
+        <p>Dengan habibGM VPS, kelola file, kode, dan data Anda langsung dari perangkat Android Anda, dengan keamanan dan fleksibilitas layaknya VPS sesungguhnya. Semua dalam genggaman.</p>
+    </header>
+
+    <section class="features">
+        <h2>Fitur Unggulan</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h3>Manajemen File Lengkap</h3>
+                <p>Ubah ponsel Anda menjadi pusat kendali file yang tangguh. Buat, baca, perbarui, dan hapus file dan direktori dengan mudah. Cocok untuk proyek pribadi atau pengelolaan data cepat.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Akses Kontrol Berbasis Peran</h3>
+                <p>Sistem otentikasi aman dengan peran Admin dan Pengguna. Admin memiliki kendali penuh, sementara pengguna dapat mengelola file pribadi dengan batasan keamanan yang ketat.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Aksesibilitas Seluler</h3>
+                <p>Dirancang untuk bekerja optimal di lingkungan ponsel seperti Termux. Nikmati pengalaman server yang ringan dan efisien, memanfaatkan sumber daya perangkat Anda secara maksimal.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Konektivitas Global (Serveo.net)</h3>
+                <p>Bagikan proyek atau file Anda ke dunia dengan mudah. Integrasi Serveo.net memungkinkan Anda membuat tautan publik ke server lokal Anda, tanpa konfigurasi jaringan rumit.</p>
+            </div>
+        </div>
+        <a href="/register.html" class="cta-button">Mulai Sekarang - Gratis!</a>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2024 habibGM VPS. Dibuat dengan Node.js & Termux.</p>
+    </footer>
+
+</body>
+</html>

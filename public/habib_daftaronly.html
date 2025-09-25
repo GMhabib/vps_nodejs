@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Pengguna Baru</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .register-container {
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <h2>Daftar Akun</h2>
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="role">Role:</label>
+            <select id="role" name="role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <button type="submit">Daftar</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+    const messageDiv = document.getElementById('message');
+
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password, role })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            messageDiv.textContent = data.message;
+            messageDiv.style.color = 'green';
+            alert('Pendaftaran berhasil! Silakan login.');
+            window.location.href = '/login.html'; // Arahkan ke halaman login
+        } else {
+            messageDiv.textContent = 'Gagal: ' + (data.message || data.error);
+            messageDiv.style.color = 'red';
+        }
+    } catch (error) {
+        messageDiv.textContent = 'Terjadi kesalahan saat terhubung ke server.';
+        messageDiv.style.color = 'red';
+    }
+});
+</script>
+
+</body>
+</html>

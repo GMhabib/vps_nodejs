@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Define the remote repository URL
+REPO_URL="https://github.com/GMhabib/vps_nodejs.git"
+
+# Check if the current directory is a Git repository
+if [ ! -d .git ]; then
+  echo "Error: Directory is not a Git repository. Initializing now..."
+  git init
+  git remote add origin $REPO_URL
+  echo "Git repository initialized and connected to $REPO_URL"
+fi
+
+# Add all changes to the staging area
+git add .
+
+# Ask for a commit message
+read -p "Masukkan pesan commit: " commit_message
+
+# Check if the commit message is empty
+if [ -z "$commit_message" ]; then
+  echo "Pesan commit tidak boleh kosong. Proses dibatalkan."
+  exit 1
+fi
+
+# Commit the changes
+git commit -m "$commit_message"
+
+# Push the changes to the remote repository
+git push origin master
+
+echo "Berhasil mengunggah perubahan ke GitHub!"

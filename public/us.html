@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Pengguna - habibGM VPS</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #e0f2f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .register-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .login-link {
+            display: block;
+            margin-top: 15px;
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <h2>Daftar Akun Pengguna</h2>
+    <form id="registerForm">
+        <div class="input-group">
+            <label for="username">Nama Pengguna</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Kata Sandi</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Daftar</button>
+    </form>
+    <a href="/login.html" class="login-link">Sudah punya akun? Masuk di sini</a>
+</div>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password, role: 'user' }) // Role is now hardcoded to 'user'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Pendaftaran berhasil! Silakan masuk.');
+                window.location.href = '/login.html';
+            } else {
+                alert('Gagal mendaftar: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat pendaftaran.');
+            console.error(error);
+        }
+    });
+</script>
+
+</body>
+</html>
